@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="W4dev WordPress Plugin">
+	<description>W4dev WordPress Plugin Ruleset.</description>
+
+	<!-- Exclude paths -->
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>languages/*</exclude-pattern>
+
+	<!-- Configs -->
+	<config name="minimum_supported_wp_version" value="4.7" />
+	<config name="testVersion" value="5.4.1-" />
+
+	<!-- Rules -->
+	<rule ref="WordPress">
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <exclude name="WordPress.Security.NonceVerification.Missing"/>
+		<exclude name="WordPress.Security.ValidatedSanitizedInput.InputNotSanitized"/>
+		<exclude name="WordPress.Security.EscapeOutput.UnsafePrintingFunction"/>
+		<exclude name="WordPress.Security.EscapeOutput.OutputNotEscaped"/>
+		<exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores"/>
+    </rule>
+
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>includes/*.php</exclude-pattern>
+		<exclude-pattern>includes/admin/*.php</exclude-pattern>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="efficient-cart-inventory-importer"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="Squiz.PHP">
+		<exclude name="Squiz.PHP.CommentedOutCode.Found"/>
+		<exclude name="Squiz.PHP.GlobalKeyword.NotAllowed"/>
+	</rule>
+
+	<rule ref="Generic.Commenting.Todo">
+    	<exclude name="Generic.Commenting.Todo.TaskFound"/>
+		<exclude name="Generic.Commenting.Todo.CommentFound"/>
+	</rule>
+</ruleset>
