@@ -1,6 +1,8 @@
 .woocommerce-cart #payment .payment_method_stcpay img,
-.woocommerce-checkout #payment .payment_method_stcpay img {
-    max-height: 52px;
+.woocommerce-checkout #payment .payment_method_stcpay img,
+.woocommerce-checkout #payment .wc_payment_method img {
+	margin: 0 10px;
+    max-height: 32px;
     vertical-align: middle;
 }
 
@@ -38,9 +40,39 @@
     max-height: 30px;
     display: inline-block;
 }
+.modal-message > .woocommerce-error,
+.modal-message > .woocommerce-message,
+.modal-message > .woocommerce-info{
+	font-size: 12px;
+	padding: 6px 15px;
+	line-height:14px;
+}
+.stcpay-otp-modal .modal-actions{
+	display: flex;
+	flex-wrap: nowrap;
+	grid-gap: 10px;
+}
 .stcpay-otp-modal #stcpay-otp-value,
-.stcpay-otp-modal .submit-otp{
+.stcpay-otp-modal .modal-actions{
 	width: 100%;
 	margin-top: 20px;
 	text-align: center;
+}
+.stcpay-otp-modal .verify-otp{
+	border:none;
+	padding: 8px 12px;
+	border-radius: 5px;
+	background-color: #0088cc;
+}
+.stcpay-otp-modal .modal-close,
+.stcpay-otp-modal .modal-close:hover,
+.stcpay-otp-modal .modal-close:focus,
+.stcpay-otp-modal .modal-close:active{
+	color: #333;
+	border:none;
+	outline: none;
+	background: none;
+}
+.stcpay-otp-modal .modal-actions > button{
+	flex: 1 1 auto;
 }

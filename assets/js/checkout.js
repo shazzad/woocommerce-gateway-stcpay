@@ -19,6 +19,7 @@
       recentAjax.data = formatData(settings.data);
     });
 
+  /*
   var showHideOtpField = function() {
     var selectedPaymentMethod = $( '.woocommerce-checkout input[name="payment_method"]:checked' ).val();
 
@@ -30,14 +31,23 @@
       }
     }
   };
-
   $( document.body ).on( 'updated_checkout', showHideOtpField );
   $( document.body ).on( 'payment_method_selected', showHideOtpField );
+  */
 
-  $( document.body ).on( 'click', '.stcpay-otp-modal .submit-otp', function(e){
+  $( document.body ).on( 'click', '.stcpay-otp-modal .verify-otp', function(e){
     e.preventDefault();
-    $(this).attr('disabled', 'disabled');
-    $('#place_order').trigger('submit');
+    $( this )
+      .attr('disabled', 'disabled')
+      .text( $('.stcpay-otp-modal .verify-otp').data('loading') );
+    $( '#place_order' ).trigger('submit');
+  } );
+
+  $( document.body ).on( 'click', '.stcpay-otp-modal .modal-close', function(e){
+    e.preventDefault();
+    $('.stcpay-otp-modal').removeClass('show');
+    $('#stcpay-mobile-no').removeAttr('readonly').focus();
+    $('#stcpay-action').val('request_payment');
   } );
 
   $( 'form.checkout' ).on( 'checkout_place_order_success', function(){
@@ -45,17 +55,27 @@
     // console.log( recentAjax.url );
     if ('stcpay' === selectedPaymentMethod && recentAjax.url === '/?wc-ajax=checkout') {
       recentAjax.xhr.done(function(result){
+        $('#stcpay-action').val(result.stcpay_action);
 
-        if ( 'request' === result.stcpay_otp ) {
+        if ( 'request_payment' === result.stcpay_action ) {
+          $('.stcpay-otp-modal').removeClass('show');
+          $('#stcpay-mobile-no').removeAttr('readonly').focus();
+
+        } else if ( 'confirm_payment' === result.stcpay_action ) {
           // Stop woocommerce scroll to notices animation.
           $( 'html, body' ).stop();
 
-          $('.stcpay-otp-modal').addClass('show');
-          $('#stcpay-mobile-no').attr('readonly', 'readonly');
-          $('#stcpay_otp_reference').val(result.stcpay_otp_reference);
-          $('#stcpay_payment_reference').val(result.stcpay_payment_reference);
+          if ( ! $('.stcpay-otp-modal').hasClass('show') ) {
+            $('.stcpay-otp-modal').addClass('show');
+            $('#stcpay-mobile-no').attr('readonly', 'readonly');
+          }
 
-        } else if ( 'success' === result.stcpay_otp  && result.redirect) {
+          $('.modal-message').html(result.messages).show();
+          $('.stcpay-otp-modal .verify-otp')
+            .removeAttr('disabled')
+            .text( $('.stcpay-otp-modal .verify-otp').data('text') );
+
+        } else if ( 'payment_confirmed' === result.stcpay_action  && result.redirect) {
           // Stop woocommerce scroll to notices animation.
           $( 'html, body' ).stop();
 

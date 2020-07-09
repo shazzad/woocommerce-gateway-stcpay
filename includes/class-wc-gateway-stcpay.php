@@ -22,7 +22,14 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 
 		/* display a message if staging environment is used */
 		if ( 'staging' == $this->environment ) {
-			$this->description .= '<br/><br/><p style="color:red;">' . __( 'TEST MODE. No OTP will be sent through SMS, use any value for OTP.', 'stcpay' ) . '</p>';
+			$this->description .= '<p style="color:red; font-size: 18px; margin: 20px 0 10px;">';
+			$this->description .= __( 'TEST MODE', 'woocommerce-gateway-stcpay' );
+			$this->description .= '</p>';
+			$this->description .= '<p style="padding: 10px; border: 1px solid red; font-size: 12px; line-height: 18px;">';
+			$this->description .= __( 'Use 966539342897 as mobile number.', 'woocommerce-gateway-stcpay' );
+			$this->description .= '<br/>' . __( 'No OTP will be sent through SMS, use any value for OTP.', 'woocommerce-gateway-stcpay' );
+			$this->description .= '<br/>' . __( 'Use 4444 as OTP to test wrong otp output.', 'woocommerce-gateway-stcpay' );
+			$this->description .= '</p>';
 			$this->description  = trim( $this->description );
 		}
 
@@ -42,9 +49,9 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 	protected function setup_properties() {
 		$this->id                 = 'stcpay';
 		$this->has_fields         = true;
-		$this->order_button_text  = __( 'Pay with Stcpay', 'stcpay' );
-		$this->method_title       = __( 'Stcpay', 'stcpay');
-		$this->method_description = __( 'Stcpay payment gateway for WooCommerce.', 'stcpay' );
+		$this->order_button_text  = __( 'Pay with Stcpay', 'woocommerce-gateway-stcpay' );
+		$this->method_title       = __( 'Stcpay', 'woocommerce-gateway-stcpay');
+		$this->method_description = __( 'Stcpay payment gateway for WooCommerce.', 'woocommerce-gateway-stcpay' );
 		$this->supports           = array(
 			'products'
 		);
@@ -81,11 +88,17 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 	 * @return bool|array
 	 */
 	public function process_payment( $order_id ) {
-		if ( WC()->checkout->get_value( 'stcpay_otp_value' ) ) {
+		if ( 'confirm_payment' === WC()->checkout->get_value( 'stcpay_action' ) ) {
 			return $this->confirm_payment( $order_id );
-		} else {
+		} elseif ( 'request_payment' === WC()->checkout->get_value( 'stcpay_action' ) ) {
 			return $this->request_payment( $order_id );
 		}
+	}
+
+	private function clear_stcpay_otp_session() {
+		WC()->session->__unset( 'stcpay_otp_expires' );
+		WC()->session->__unset( 'stcpay_otp_reference' );
+		WC()->session->__unset( 'stcpay_payment_reference' );
 	}
 
 	public function confirm_payment( $order_id ) {
@@ -94,31 +107,66 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 
 		wc_stcpay()->log( 'Stcpay confirming payment with OTP - '. WC()->checkout->get_value( 'stcpay_otp_value' ) );
 
-		if ( ! WC()->checkout->get_value( 'stcpay_otp_reference' ) ) {
-			wc_add_notice( __( 'Internal Error: Missing otp reference.' ), 'error' );
-			return false;
-		} elseif ( ! WC()->checkout->get_value( 'stcpay_payment_reference' ) ) {
-			wc_add_notice( __( 'Internal Error: Missing payment reference.' ), 'error' );
-			return false;
+		$error = '';
+		if ( ! WC()->session->get( 'stcpay_otp_expires' ) || WC()->session->get( 'stcpay_otp_expires' ) < time() ) {
+			$error = __( 'Internal Error: OTP expired.' );
+		} elseif ( ! WC()->session->get( 'stcpay_otp_reference' ) ) {
+			$error = __( 'Internal Error: Missing otp reference.' );
+		} elseif ( ! WC()->session->get( 'stcpay_payment_reference' ) ) {
+			$error = __( 'Internal Error: Missing payment reference.' );
+		}
+
+		if ( ! empty( $error ) ) {
+			$this->clear_stcpay_otp_session();
+
+			return array(
+				'result'        => 'success',
+				'messages'      => '<div class="woocommerce-error">' . __( 'OTP expired, Request again.', 'woocommerce-gateway-stcpay' ) . '</div>',
+				'stcpay_action' => 'request_payment',
+				'redirect'      => $this->get_return_url( $order ),
+			);
 		}
 
 		$confirm_payment = $client->confirm_payment(
 			WC()->checkout->get_value( 'stcpay_otp_value' ),
-			WC()->checkout->get_value( 'stcpay_otp_reference' ),
-			WC()->checkout->get_value( 'stcpay_payment_reference' )
+			WC()->session->get( 'stcpay_otp_reference' ),
+			WC()->session->get( 'stcpay_payment_reference' )
 		);
 
 		if ( is_wp_error( $confirm_payment ) ) {
-			wc_stcpay()->log( sprintf( __( 'Stcpay API Error: %s' ), $confirm_payment->get_error_message() ) );
+			wc_stcpay()->log(
+				sprintf(
+					/* translators: %s: Error message, may contain html */
+					__( 'Stcpay API Error: %s', 'woocommerce-gateway-stcpay' ),
+					$confirm_payment->get_error_message()
+				)
+			);
 
-			wc_add_notice( $confirm_payment->get_error_message(), 'error' );
-			return false;
+			$error = $confirm_payment->get_error_message();
+
+			if ( ! in_array( $confirm_payment->get_error_code(), array( 'api_error', 'customer_error', 'internal_error', 'stcpay_error' ) ) ) {
+				$error = __( 'Could not process your request. Please try later, or use other payment gateway.', 'woocommerce-gateway-stcpay' );
+			}
+
+			return array(
+				'result'        => 'success',
+				'messages'      => '<div class="woocommerce-error">' . $error . '</div>',
+				'stcpay_action' => 'confirm_payment',
+				'redirect'      => $this->get_return_url( $order ),
+			);
 		}
 
 		// Remove cart.
 		WC()->cart->empty_cart();
 
-		$order->add_order_note( sprintf( __( 'Stcpay Payment Status: %s' ), wc_clean( $confirm_payment['PaymentStatusDesc'] ) ) );
+		$order->add_order_note(
+			sprintf(
+				/* translators: %1$s: Payment status - PAID, PENDING, CANCELLED, EXPIRED. %2$s: Amount */
+				__( 'Stcpay Payment Status: %1$s. Amount Collected: %2$s', 'woocommerce-gateway-stcpay' ),
+				wc_clean( $confirm_payment['PaymentStatusDesc'] ),
+				wc_clean( $confirm_payment['Amount'] )
+			)
+		);
 
 		$order->add_meta_data( 'Stcpay PaymentDate', wc_clean( $confirm_payment['PaymentDate'] ) );
 		$order->add_meta_data( 'Stcpay PaymentStatus', wc_clean( $confirm_payment['PaymentStatus'] ) );
@@ -126,15 +174,10 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 
 		$order->payment_complete( $confirm_payment['STCPayRefNum'] );
 
-		#update_post_meta( $order->get_id(), 'STCPay RefNum', $confirm_payment['STCPayRefNum'] );
-		#update_post_meta( $order->get_id(), 'STCPay PaymentDate', $confirm_payment['PaymentDate'] );
-		#update_post_meta( $order->get_id(), 'STCPay PaymentStatus', $confirm_payment['PaymentStatus'] );
-		#update_post_meta( $order->get_id(), 'STCPay PaymentStatusDesc', $confirm_payment['PaymentStatusDesc'] );
-
 		return array(
 			'result'        => 'success',
-			'messages'      => __( 'OTP Confirmed.' ),
-			'stcpay_otp' 	=> 'success',
+			'messages'      => __( 'OTP Confirmed.', 'woocommerce-gateway-stcpay' ),
+			'stcpay_action' => 'payment_confirmed',
 			'confirm'       => $confirm_payment,
 			'redirect'      => $this->get_return_url( $order ),
 		);
@@ -144,21 +187,35 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		$order  = wc_get_order( $order_id );
 		$client = new WC_Stcpay_Client();
 
-		wc_stcpay()->log( sprintf( __( 'Stcpay requesting payment for order # %d' ), $order_id  ) );
+		wc_stcpay()->log(
+			sprintf(
+				/* translators: %d: Order id, numeric. */
+				__( 'Stcpay requesting payment for order # %d', 'woocommerce-gateway-stcpay' ),
+				$order_id
+			)
+		);
+
+		$mobile_no = WC()->checkout->get_value( 'stcpay_mobile_no' );
+
+		// store mobile number in user meta & session.
+		WC()->session->set( 'stcpay_mobile_no', $mobile_no );
+		if ( is_user_logged_in() ) {
+			update_user_meta( get_current_user_id(), 'stcpay_mobile_no', $mobile_no );
+		}
 
 		$request_payment = $client->request_payment( $order, WC()->checkout->get_value( 'stcpay_mobile_no' ) );
 
 		if ( is_wp_error( $request_payment ) ) {
 			wc_stcpay()->log( sprintf( __( 'Stcpay API Error: %s' ), $request_payment->get_error_message() ) );
 
-			if ( in_array( $request_payment->get_error_code(), array( 'empty_api_response' ) ) ) {
-				wc_add_notice( __( 'Internal Error: Please try later, or use other payment gateway.' ), 'error' );
-			} else if ( in_array( $request_payment->get_error_code(), array( 'api_error' ) ) ) {
-				wc_add_notice( $request_payment->get_error_message(), 'error' );
-			} else if ( in_array( $request_payment->get_error_code(), array( 'unknown_api_response' ) ) ) {
-				wc_add_notice( __( 'Stcpay Error: Unknown Response.', 'stcpay' ), 'error' );
+			if ( $request_payment->get_error_data() ) {
+				wc_stcpay()->log( print_r( $request_payment->get_error_data(), true ) );
+			}
+
+			if ( ! in_array( $request_payment->get_error_code(), array( 'api_error', 'customer_error', 'internal_error', 'stcpay_error' ) ) ) {
+				wc_add_notice( __( 'Could not process your request. Please try later, or use other payment gateway.', 'woocommerce-gateway-stcpay' ), 'error' );
 			} else {
-				wc_add_notice( __( 'Could not process your request. Please try later, or use other payment gateway.' ), 'error' );
+				wc_add_notice( $request_payment->get_error_message(), 'error' );
 			}
 
 			return false;
@@ -166,28 +223,27 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 
 		$order->add_order_note(
 			sprintf(
-				__( 'Stcpay OtpReference: %s, PaymentReference: %s' ),
-				wc_clean( $request_payment['OtpReference'] ),
+				/* translators: %s: Payment reference, string. */
+				__( 'Stcpay OTP Requested, Payment Reference: %s', 'woocommerce-gateway-stcpay' ),
 				wc_clean( $request_payment['STCPayPmtReference'] )
 			)
 		);
-		$order->add_meta_data( 'Stcpay OtpReference', wc_clean( $request_payment['OtpReference'] ) );
-		$order->add_meta_data( 'Stcpay PaymentReference', wc_clean( $request_payment['STCPayPmtReference'] ) );
-		$order->save();
+
+		WC()->session->set( 'stcpay_otp_expires', time() + $request_payment['ExpiryDuration'] );
+		WC()->session->set( 'stcpay_otp_reference', $request_payment['OtpReference'] );
+		WC()->session->set( 'stcpay_payment_reference', $request_payment['STCPayPmtReference'] );
 
 		return array(
 			'result'                   => 'success',
-			'messages'                 => '<div class="woocommerce-info">' . __( 'Enter OTP to confirm order' ) . '</div>',
-			'stcpay_otp' 			   => 'request',
-			'stcpay_otp_reference'     => $request_payment['OtpReference'],
-			'stcpay_payment_reference' => $request_payment['STCPayPmtReference'],
+			'messages'                 => '<div class="woocommerce-info">' . __( 'Enter OTP to confirm order', 'woocommerce-gateway-stcpay' ) . '</div>',
+			'stcpay_action' 		   => 'confirm_payment',
 			'redirect'                 => $this->get_return_url( $order ),
 		);
 	}
 
 	public function validate_fields() {
 		if ( ! WC()->checkout->get_value( 'stcpay_mobile_no' ) ) {
-			wc_add_notice( __( 'Please enter your stcpay wallet mobile number' ), 'error' );
+			wc_add_notice( __( 'Please enter your stcpay wallet mobile number', 'woocommerce-gateway-stcpay' ), 'error' );
 		}
 	}
 
@@ -197,14 +253,21 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			echo wpautop( wptexturize( $description ) );
 		}
 
+		$mobile_no = '';
+		if ( is_user_logged_in() ) {
+			$mobile_no = get_user_meta( get_current_user_id(), 'stcpay_mobile_no', true );
+		}
+		if ( ! $mobile_no ) {
+			$mobile_no = WC()->session->get( 'stcpay_mobile_no' );
+		}
+
 		?>
-		<fieldset id="WC()-stcpay-form" class="WC()-payment-form">
+		<fieldset id="wc-stcpay-form" class="wc-payment-form">
 			<p class="form-row field-stcpay-mobile-no">
-				<label for="stcpay-mobile-no"><?php _e( 'Stcpay Wallet Mobile Number', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
-				<input id="stcpay-mobile-no" class="input-text" autocorrect="no" autocapitalize="no" spellcheck="no" type="text" name="stcpay_mobile_no" required />
+				<label for="stcpay-mobile-no"><?php _e( 'Stcpay Wallet Mobile Number', 'woocommerce-gateway-stcpay' ); ?>&nbsp;<span class="required">*</span></label>
+				<input id="stcpay-mobile-no" value="<?php echo esc_attr( $mobile_no ); ?>" class="input-text" autocorrect="no" autocapitalize="no" spellcheck="no" type="text" name="stcpay_mobile_no" required />
 			</p>
-			<input type="hidden" id="stcpay_otp_reference" name="stcpay_otp_reference" />
-			<input type="hidden" id="stcpay_payment_reference" name="stcpay_payment_reference" />
+			<input type="hidden" id="stcpay-action" name="stcpay_action" value="request_payment" />
 			<div class="clear"></div>
 		</fieldset>
 		<?php
@@ -260,7 +323,7 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
 
-		if ( 'woocommerce_page_WC()-settings' !== $screen_id ) {
+		if ( 'woocommerce_page_wc-settings' !== $screen_id ) {
 			return;
 		}
 

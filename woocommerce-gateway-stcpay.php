@@ -1,14 +1,14 @@
 <?php
 /*
- * Plugin Name: WooCommerce StcPay Gateway
- * Description: Take Credit card, Debit card, NetBanking, Wallets, UPI payments on your store using Stcpay.
- * Version: 0.0.1
+ * Plugin Name: WooCommerce Stcpay Gateway
+ * Description: Take payments using Stcpay mobile wallet service.
+ * Version: 0.0.2
  * Author: Shazzad Hossain Khan
  * Requires at least: 5.4.2
  * Tested up to: 5.4.2
  * WC requires at least: 4.0.0
  * WC tested up to: 4.2.0
- * Text Domain: stcpay
+ * Text Domain: woocommerce-gateway-stcpay
  * Domain Path: /languages/
 */
 
@@ -29,7 +29,7 @@ if ( ! defined( 'WC_STCPAY_PLUGIN_FILE' ) ) {
  */
 function wc_stcpay_missing_wc_notice() {
 	/* translators: 1. URL link. */
-	echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'Stcpay requires WooCommerce to be installed and active. You can download %s here.', 'stcpay' ), '<a href="https://woocommerce.com/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
+	echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'Stcpay requires WooCommerce to be installed and active. You can download %s here.', 'woocommerce-gateway-stcpay' ), '<a href="https://woocommerce.com/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 }
 
 /**
@@ -38,7 +38,7 @@ function wc_stcpay_missing_wc_notice() {
  * @return string
  */
 function wc_stcpay_version_wc_notice() {
-	echo '<div class="error"><p><strong>' . esc_html__( 'Stcpay requires mimumum WooCommerce 3.0. Please upgrade.', 'stcpay' ) . '</strong></p></div>';
+	echo '<div class="error"><p><strong>' . esc_html__( 'Stcpay requires mimumum WooCommerce 3.0. Please upgrade.', 'woocommerce-gateway-stcpay' ) . '</strong></p></div>';
 }
 
 /**

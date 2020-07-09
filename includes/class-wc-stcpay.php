@@ -4,48 +4,26 @@
  *
  * @class       WC_Stcpay
  **/
-
-
 final class WC_Stcpay {
-
 	/**
 	 * @var plugin name
 	 */
 	public $name = 'WooCommerce Gateway Stcpay';
 
-
 	/**
 	 * @var plugin version
 	 */
-	public $version = '0.0.1';
-
+	public $version = '0.0.2';
 
 	/**
 	 * @var Singleton The reference the *Singleton* instance of this class
 	 */
 	protected static $_instance = null;
 
-
 	/**
 	 * @var plugin settings
 	 */
 	protected static $settings = null;
-
-
-	/**
-	 * @var available api environments
-	 */
-	public static $environments = array(
-		'staging'    => array(
-			'name'     => 'Staging',
-			'endpoint' => 'https://b2btest.stcpay.com.sa/B2B.DirectPayment.WebApi/DirectPayment/V4',
-		),
-		'production' => array(
-			'name'     => 'Production',
-			'endpoint' => 'https://b2b.stcpay.com.sa/B2B.DirectPayment.WebApi/DirectPayment/V4',
-		),
-	);
-
 
 	public static $log = false;
 
@@ -62,7 +40,6 @@ final class WC_Stcpay {
 		return self::$_instance;
 	}
 
-
 	/**
 	 * Private clone method to prevent cloning of the instance of the
 	 * *Singleton* instance.
@@ -71,7 +48,6 @@ final class WC_Stcpay {
 	 */
 	private function __clone() {}
 
-
 	/**
 	 * Private unserialize method to prevent unserializing of the *Singleton*
 	 * instance.
@@ -79,7 +55,6 @@ final class WC_Stcpay {
 	 * @return void
 	 */
 	private function __wakeup() {}
-
 
 	/**
 	 * Protected constructor to prevent creating a new instance of the
@@ -124,16 +99,14 @@ final class WC_Stcpay {
 		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-hooks.php';
 	}
 
-
 	/**
 	 * Register hooks
 	 */
 	private function register_hooks() {
 		add_action( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ), 0 );
+		add_action( 'init', array( $this, 'load_plugin_translations' ) );
 		add_filter( 'plugin_action_links_' . WC_STCPAY_BASENAME, array( $this, 'plugin_action_links' ) );
-		# add_action( 'woocommerce_before_settings_checkout', array( $this, 'test_gateway' ) );
 	}
-
 
 	/**
 	 * Add the gateways to WooCommerce.
@@ -143,6 +116,16 @@ final class WC_Stcpay {
 		return $methods;
 	}
 
+	/**
+	 * Load plugin translation file
+	 */
+	public function load_plugin_translations() {
+		load_plugin_textdomain(
+			'woocommerce-gateway-stcpay',
+			false,
+			basename( dirname( WC_STCPAY_PLUGIN_FILE ) ) . '/languages'
+		);
+	}
 
 	/**
 	 * Adds plugin action links.
@@ -151,7 +134,6 @@ final class WC_Stcpay {
 		$links['settings'] = '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stcpay' ) . '">' . __( 'Settings', 'stcpay' ) . '</a>';
 		return $links;
 	}
-
 
 	/**
 	 * Get option from plugin settings
@@ -165,7 +147,6 @@ final class WC_Stcpay {
 
 		return $default;
 	}
-
 
 	/**
 	 * Logging method.
@@ -182,19 +163,5 @@ final class WC_Stcpay {
 
 			self::$log->log( $level, $message, array( 'source' => 'stcpay' ) );
 		}
-	}
-
-
-	// Debugging
-	public function test_gateway() {
-		self::log( 'Testing payment 3' );
-		return;
-
-		$client = new WC_Stcpay_Client();
-		$order = wc_get_order( 11202 );
-		$request_payment = $client->request_payment( $order, 966539342897 );
-		#echo WC()->countries->countries[ $order->get_billing_country() ];
-		WC_Stcpay_Utils::p( $request_payment );
-		#WC_Stcpay_Utils::p( $order );
 	}
 }

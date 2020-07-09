@@ -29,7 +29,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="efficient-cart-inventory-importer"/>
+				<element value="woocommerce-gateway-stcpay"/>
 			</property>
 		</properties>
 	</rule>

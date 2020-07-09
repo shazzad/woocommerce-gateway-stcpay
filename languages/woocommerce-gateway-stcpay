@@ -1,0 +1,367 @@
+# Copyright (C) 2020 Shazzad Hossain Khan
+# This file is distributed under the same license as the WooCommerce StcPay Gateway plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce StcPay Gateway 0.0.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-gateway-stcpay\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2020-07-09T16:03:27+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: woocommerce-gateway-stcpay\n"
+
+#. Plugin Name of the plugin
+msgid "WooCommerce StcPay Gateway"
+msgstr ""
+
+#. Description of the plugin
+msgid "Take Credit card, Debit card, NetBanking, Wallets, UPI payments on your store using Stcpay."
+msgstr ""
+
+#. Author of the plugin
+msgid "Shazzad Hossain Khan"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:25
+msgid "TEST MODE. No OTP will be sent through SMS, use any value for OTP. Use 4444 as OTP to test wrong otp output."
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:45
+msgid "Pay with Stcpay"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:46
+#: includes/settings-stcpay.php:62
+msgid "Stcpay"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:47
+msgid "Stcpay payment gateway for WooCommerce."
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:117
+msgid "OTP expired, Request again."
+msgstr ""
+
+#. translators: %s: Error message, may contain html
+#: includes/class-wc-gateway-stcpay.php:133
+msgid "Stcpay API Error: %s"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:141
+#: includes/class-wc-gateway-stcpay.php:208
+msgid "Could not process your request. Please try later, or use other payment gateway."
+msgstr ""
+
+#. translators: %s: Payment status - PAID, PENDING, CANCELLED, EXPIRED
+#: includes/class-wc-gateway-stcpay.php:158
+msgid "Stcpay Payment Status: %s"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:171
+msgid "OTP Confirmed."
+msgstr ""
+
+#. translators: %d: Order id, numeric.
+#: includes/class-wc-gateway-stcpay.php:185
+msgid "Stcpay requesting payment for order # %d"
+msgstr ""
+
+#. translators: %s: Payment reference, string.
+#: includes/class-wc-gateway-stcpay.php:219
+msgid "Stcpay OTP Requested, Payment Reference: %s"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:230
+msgid "Enter OTP to confirm order"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:238
+msgid "Please enter your stcpay wallet mobile number"
+msgstr ""
+
+#: includes/class-wc-gateway-stcpay.php:259
+msgid "Stcpay Wallet Mobile Number"
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:46
+msgid "An error occurred."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:47
+msgid "Invalid Request Format."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:48
+msgid "At least one of the fields must be provided"
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:49
+msgid "Generic Business Validation."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:50
+msgid "Merchant Not Found."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:51
+msgid "No Such Payment."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:52
+msgid "No Account Found With This Mobile No."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:53
+msgid "Already Paid."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:54
+msgid "RefNum Or Payment Date Required"
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:55
+msgid "Required BranchID."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:56
+msgid "Required TellerID."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:57
+msgid "Required DeviceID."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:58
+msgid "Required RefNum."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:59
+msgid "Required BillNumber."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:60
+msgid "Required Amount."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:61
+msgid "Required MobileNo."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:62
+msgid "Mobile No Invalid."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:63
+msgid "Required OtpReference."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:64
+msgid "Required OtpValue."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:65
+msgid "Required STCPayPmtReference."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:66
+msgid "Invalid Token"
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:67
+msgid "Customer doesn’t have Sufficient Fund."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:68
+msgid "Shared Account Limit Exceeded."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:69
+msgid "Shared Account Transaction not allowed."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:70
+msgid "Payment Expired."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:71
+msgid "Payment Cancelled."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:72
+msgid "Please complete your Customer Information."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:73
+msgid "Your account status is not valid to perform this transaction."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:74
+msgid "Account is not allowed for transfers."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:75
+#: includes/class-wc-stcpay-client.php:164
+msgid "Invalid OTP either expired or not found, please request a new OTP."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:76
+msgid "MerchantId Required."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:77
+msgid "Merchant is not active."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:78
+msgid "Invalid Merchant ID."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:79
+msgid "Invalid Amount."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:80
+msgid "Payment information mismatch with the OtpReference."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:240
+msgid "Invalid merchant id or ssl certificates."
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:251
+msgid "Internal Error. Please try later or Use other payment method"
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:257
+msgid "API Error"
+msgstr ""
+
+#: includes/class-wc-stcpay-client.php:262
+msgid "Unknown Response."
+msgstr ""
+
+#: includes/class-wc-stcpay-hooks.php:29
+msgid "Please enter the OTP you have received from STC Pay"
+msgstr ""
+
+#: includes/class-wc-stcpay-hooks.php:33
+msgid "Verify OTP"
+msgstr ""
+
+#: includes/class-wc-stcpay-hooks.php:33
+msgid "Verifying"
+msgstr ""
+
+#: includes/class-wc-stcpay-hooks.php:34
+msgid "Cancel"
+msgstr ""
+
+#. translators: %s: Gateway Environment - Staging, Production
+#: includes/settings-stcpay.php:19
+msgid "%s SSL Cert File:"
+msgstr ""
+
+#: includes/settings-stcpay.php:23
+msgid "SSL Certificate file path."
+msgstr ""
+
+#. translators: %s: Gateway Environment - Staging, Production
+#: includes/settings-stcpay.php:29
+msgid "%s SSL Key File:"
+msgstr ""
+
+#: includes/settings-stcpay.php:33
+msgid "SSL Private key file path."
+msgstr ""
+
+#. translators: %s: Gateway Environment - Staging, Production
+#: includes/settings-stcpay.php:39
+msgid "%s SSL Key Password:"
+msgstr ""
+
+#: includes/settings-stcpay.php:43
+msgid "SSL Private key password."
+msgstr ""
+
+#: includes/settings-stcpay.php:51
+msgid "Enable:"
+msgstr ""
+
+#: includes/settings-stcpay.php:59
+msgid "Title:"
+msgstr ""
+
+#: includes/settings-stcpay.php:61
+msgid "Title of Stcpay Payment Gateway that users see on Checkout page."
+msgstr ""
+
+#: includes/settings-stcpay.php:66
+msgid "Description:"
+msgstr ""
+
+#: includes/settings-stcpay.php:68
+msgid "Description of Stcpay Payment Gateway that users sees on Checkout page."
+msgstr ""
+
+#: includes/settings-stcpay.php:69
+msgid "Pay securely by Stcpay wallet."
+msgstr ""
+
+#: includes/settings-stcpay.php:73
+msgid "Advanced options"
+msgstr ""
+
+#: includes/settings-stcpay.php:77
+msgid "Mertchant ID:"
+msgstr ""
+
+#: includes/settings-stcpay.php:79
+msgid "Stcpay Merchant id."
+msgstr ""
+
+#: includes/settings-stcpay.php:83
+msgid "Branch ID:"
+msgstr ""
+
+#: includes/settings-stcpay.php:85
+msgid "Branch id used for direct payment authorization."
+msgstr ""
+
+#: includes/settings-stcpay.php:90
+msgid "Teller ID:"
+msgstr ""
+
+#: includes/settings-stcpay.php:92
+msgid "Teller id used for direct payment authorization."
+msgstr ""
+
+#: includes/settings-stcpay.php:97
+msgid "Debug log"
+msgstr ""
+
+#. translators: %1$s: Login file path. %2$s: Login file url.
+#: includes/settings-stcpay.php:102
+msgid "Log Stcpay events, such as Webhook requests, inside %1$s. Note: this may log personal information. We recommend using this for debugging purposes only and deleting the logs when finished. <a href=\"%2$s\">View logs here</a>"
+msgstr ""
+
+#: includes/settings-stcpay.php:109
+msgid "API Settings"
+msgstr ""
+
+#: includes/settings-stcpay.php:113
+msgid "Environment"
+msgstr ""
+
+#. translators: 1. URL link.
+#: woocommerce-gateway-stcpay.php:32
+msgid "Stcpay requires WooCommerce to be installed and active. You can download %s here."
+msgstr ""
+
+#: woocommerce-gateway-stcpay.php:41
+msgid "Stcpay requires mimumum WooCommerce 3.0. Please upgrade."
+msgstr ""
