@@ -1,0 +1,46 @@
+.woocommerce-cart #payment .payment_method_stcpay img,
+.woocommerce-checkout #payment .payment_method_stcpay img {
+    max-height: 52px;
+    vertical-align: middle;
+}
+
+.stcpay-otp-modal{
+	z-index: 9999;
+	display: none;
+	position: fixed;
+	text-align: center;
+	align-items: center;
+	justify-content: center;
+	top:0; right: 0; bottom: 0; left: 0;
+	background-color: rgba(0, 0, 0, 0.3);
+}
+.stcpay-otp-modal.show{
+	display: flex;
+}
+.stcpay-otp-modal .modal-wrap{
+	width: 360px;
+	margin: 20px;
+	max-width: 90%;
+	border-radius: 5px;
+	background-color: #fff;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+}
+.stcpay-otp-modal .modal-inner{
+	padding: 20px;
+}
+.stcpay-otp-modal .logo-wrap,
+.stcpay-otp-modal label {
+	margin: 0;
+	display: block;
+}
+.stcpay-otp-modal .logo-wrap img {
+    float: none;
+    max-height: 30px;
+    display: inline-block;
+}
+.stcpay-otp-modal #stcpay-otp-value,
+.stcpay-otp-modal .submit-otp{
+	width: 100%;
+	margin-top: 20px;
+	text-align: center;
+}

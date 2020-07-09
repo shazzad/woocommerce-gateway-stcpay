@@ -44,7 +44,7 @@ class WC_Stcpay_Client {
 	 * @return boolean True if available.
 	 */
 	public function is_available() {
-		return $this->ssl_cert_file && $this->ssl_key_file;
+		return $this->ssl_cert_file && $this->ssl_key_file && $this->merchant_id;
 	}
 
 	/**
@@ -65,23 +65,19 @@ class WC_Stcpay_Client {
 	 * Get the Stcpay request URL for an order.
 	 *
 	 * @param  WC_Order $order Order object.
+	 * @param  string $mobile_no Customer stcpay wallet mobile number.
 	 * @return string
 	 */
-	public function request_payment( $order, $mobile_no = '' ) {
-		/*
+	public function request_payment( $order, $mobile_no ) {
 		return array(
 			'OtpReference' => 'MruEmuIQSDYDuFMEeWNN',
 			'STCPayPmtReference' => '3495370164',
 			'ExpiryDuration' => 300,
-		);*/
+		);
 
-		$merchange_note = 'Payment requests for your order.';
+		$merchange_note = __( 'Payment requests for your order.' );
 		foreach ( $order->get_items() as $item ) {
 			$merchange_note .= $item['name'] . " x" . $item['qty'] . '.';
-		}
-
-		if ( ! $mobile_no ) {
-			$mobile_no = $order->get_billing_phone();
 		}
 
 		$data = array(
@@ -108,6 +104,19 @@ class WC_Stcpay_Client {
 	 * @return string
 	 */
 	public function confirm_payment( $otp_value, $otp_reference, $payment_reference ) {
+		return array(
+			"MerchantID" => "61240300247",
+	        "BranchID" => "1",
+	        "TellerID" => "22",
+	        "DeviceID" => "500",
+	        "RefNum" => "wc_order_bcdahello",
+	        "STCPayRefNum" => $payment_reference,
+	        "Amount" => 20.800,
+	        "PaymentDate" => "2020-07-06T17:34:15.24",
+	        "PaymentStatus" => 2,
+	        "PaymentStatusDesc" => "Paid"
+		);
+
 		$data = array(
 			'OtpValue'           => $otp_value,
 			'OtpReference'       => $otp_reference,
@@ -124,7 +133,7 @@ class WC_Stcpay_Client {
 	 * @return string
 	 */
 	private function request( $type, $data ) {
-		wc_stcpay()->log( 'Stcpay Api Request:' . $type );
+		wc_stcpay()->log( 'Stcpay API Request: ' . $type );
 		wc_stcpay()->log( print_r( $data, true ) );
 
 		$url = $this->endpoint . '/' . $type;

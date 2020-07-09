@@ -2,13 +2,11 @@
 	'use strict';
 
   var formatData = function(data){
-    //console.log( JSON.parse('{"' + decodeURI(data).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}') );
     var parts = data.split("&"), pair, out = {};
     for (var i=0; i<parts.length; i++){
       pair = parts[i].split("=");
       out[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
     }
-    //console.log(out)
     return out;
   }
 
@@ -18,27 +16,57 @@
     .ajaxSend(function( event, xhr, settings ) {
       recentAjax.url = settings.url;
       recentAjax.xhr = xhr;
-      //recentAjax.response = xhr.responseJSON;
       recentAjax.data = formatData(settings.data);
     });
 
-  var $checkout_form = $( 'form.checkout' );
+  var showHideOtpField = function() {
+    var selectedPaymentMethod = $( '.woocommerce-checkout input[name="payment_method"]:checked' ).val();
 
-  $checkout_form.on( 'checkout_place_order_success', function(){
-    console.log( recentAjax.url );
-    if (recentAjax.url === '/?wc-ajax=checkout') {
+    if ('stcpay' === selectedPaymentMethod) {
+      if ( $('#stcpay_otp_reference').val() || ! $('#stcpay_payment_reference').val() ) {
+        $('.field-stcpay-otp-value').hide();
+      } else {
+        $('.field-stcpay-otp-value').show();
+      }
+    }
+  };
+
+  $( document.body ).on( 'updated_checkout', showHideOtpField );
+  $( document.body ).on( 'payment_method_selected', showHideOtpField );
+
+  $( document.body ).on( 'click', '.stcpay-otp-modal .submit-otp', function(e){
+    e.preventDefault();
+    $(this).attr('disabled', 'disabled');
+    $('#place_order').trigger('submit');
+  } );
+
+  $( 'form.checkout' ).on( 'checkout_place_order_success', function(){
+    var selectedPaymentMethod = $( '.woocommerce-checkout input[name="payment_method"]:checked' ).val();
+    // console.log( recentAjax.url );
+    if ('stcpay' === selectedPaymentMethod && recentAjax.url === '/?wc-ajax=checkout') {
       recentAjax.xhr.done(function(result){
-        if ( result.stcpay_OtpReference ) {
-          console.log('Enter your OTP...');
-          $('#stcpay_OtpReference').val(result.stcpay_OtpReference);
-          $('#stcpay_PmtReference').val(result.stcpay_PmtReference);
-        } else if (result && result.otp_confirmed && result.redirect) {
-          console.log('redirecting...');
+
+        if ( 'request' === result.stcpay_otp ) {
+          // Stop woocommerce scroll to notices animation.
+          $( 'html, body' ).stop();
+
+          $('.stcpay-otp-modal').addClass('show');
+          $('#stcpay-mobile-no').attr('readonly', 'readonly');
+          $('#stcpay_otp_reference').val(result.stcpay_otp_reference);
+          $('#stcpay_payment_reference').val(result.stcpay_payment_reference);
+
+        } else if ( 'success' === result.stcpay_otp  && result.redirect) {
+          // Stop woocommerce scroll to notices animation.
+          $( 'html, body' ).stop();
+
           window.location = result.redirect;
        }
       });
+
+      return false;
+    } else {
+      return true;
     }
-    return false;
   });
 
 })(jQuery);

@@ -110,6 +110,8 @@ final class WC_Stcpay {
 		if ( is_null( self::$settings ) ) {
 			self::$settings = get_option( 'woocommerce_stcpay_settings', array() );
 		}
+
+		WC_Stcpay_Hooks::init();
 	}
 
 	/**
@@ -118,8 +120,8 @@ final class WC_Stcpay {
 	private function includes() {
 		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-utils.php';
 		require WC_STCPAY_DIR . '/includes/class-wc-gateway-stcpay.php';
-		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-request.php';
 		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-client.php';
+		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-hooks.php';
 	}
 
 

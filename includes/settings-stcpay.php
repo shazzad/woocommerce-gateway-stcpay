@@ -10,7 +10,7 @@ $environments = array();
 $environment_fileds = array();
 
 foreach ( WC_Stcpay::$environments as $environment_id => $environment ) {
-	$environments[$environment_id] = $environment['name'];
+	$environments[ $environment_id ] = $environment['name'];
 
 	$environment_fileds[$environment_id . '_ssl_cert_file'] = array(
 		'title'       => sprintf( __( '%s SSL Cert File:', 'stcpay' ), $environment['name'] ),
