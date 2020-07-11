@@ -13,7 +13,7 @@ final class WC_Stcpay {
 	/**
 	 * @var plugin version
 	 */
-	public $version = '0.0.2';
+	public $version = '0.0.3';
 
 	/**
 	 * @var Singleton The reference the *Singleton* instance of this class

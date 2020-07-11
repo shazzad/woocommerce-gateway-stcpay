@@ -1,3 +1,4 @@
+/* Fix large payment gateway logo */
 .woocommerce-cart #payment .payment_method_stcpay img,
 .woocommerce-checkout #payment .payment_method_stcpay img,
 .woocommerce-checkout #payment .wc_payment_method img {
@@ -6,7 +7,8 @@
     vertical-align: middle;
 }
 
-.stcpay-otp-modal{
+/* Modal */
+.stcpay-modal{
 	z-index: 9999;
 	display: none;
 	position: fixed;
@@ -16,10 +18,10 @@
 	top:0; right: 0; bottom: 0; left: 0;
 	background-color: rgba(0, 0, 0, 0.3);
 }
-.stcpay-otp-modal.show{
+.stcpay-modal.show{
 	display: flex;
 }
-.stcpay-otp-modal .modal-wrap{
+.stcpay-modal .modal-wrap{
 	width: 360px;
 	margin: 20px;
 	max-width: 90%;
@@ -27,52 +29,80 @@
 	background-color: #fff;
 	box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
 }
-.stcpay-otp-modal .modal-inner{
+.stcpay-modal .modal-inner{
 	padding: 20px;
 }
-.stcpay-otp-modal .logo-wrap,
-.stcpay-otp-modal label {
+
+
+.stcpay-modal .logo-wrap,
+.stcpay-modal label {
 	margin: 0;
 	display: block;
 }
-.stcpay-otp-modal .logo-wrap img {
+.stcpay-modal .logo-wrap img {
     float: none;
     max-height: 30px;
     display: inline-block;
 }
-.modal-message > .woocommerce-error,
-.modal-message > .woocommerce-message,
-.modal-message > .woocommerce-info{
-	font-size: 12px;
-	padding: 6px 15px;
-	line-height:14px;
+.modal-notice{
+	margin: 10px 0;
 }
-.stcpay-otp-modal .modal-actions{
+.modal-notice > .countdown{
+	color: red;
+}
+.modal-notice > .countdown,
+.modal-notice > .woocommerce-error,
+.modal-notice > .woocommerce-message,
+.modal-notice > .woocommerce-info{
+	font-size: 12px;
+	line-height:14px;
+	text-align: center;
+}
+.form-notice > .woocommerce-error,
+.form-notice > .woocommerce-message,
+.form-notice > .woocommerce-info{
+	font-size: 12px;
+	line-height:14px;
+	text-align: center;
+}
+.stcpay-modal .form-actions{
 	display: flex;
 	flex-wrap: nowrap;
 	grid-gap: 10px;
-}
-.stcpay-otp-modal #stcpay-otp-value,
-.stcpay-otp-modal .modal-actions{
-	width: 100%;
 	margin-top: 20px;
+}
+.stcpay-modal .form-heading{
+	margin: 20px 0;
 	text-align: center;
 }
-.stcpay-otp-modal .verify-otp{
+#stcpay-modal-otp-value,
+.stcpay-modal .form-actions{
+	width: 100%;
+	text-align: center;
+}
+.stcpay-modal .confirm-otp-btn,
+.stcpay-modal .request-otp-btn{
+	color: #fff;
 	border:none;
+	cursor: pointer;
 	padding: 8px 12px;
 	border-radius: 5px;
-	background-color: #0088cc;
+	background-color: #4f008c;
 }
-.stcpay-otp-modal .modal-close,
-.stcpay-otp-modal .modal-close:hover,
-.stcpay-otp-modal .modal-close:focus,
-.stcpay-otp-modal .modal-close:active{
+.stcpay-modal .confirm-otp-btn:disabled,
+.stcpay-modal .request-otp-btn:disabled{
+	opacity: 0.6;
+}
+.stcpay-modal .modal-close-btn,
+.stcpay-modal .modal-close-btn:hover,
+.stcpay-modal .modal-close-btn:focus,
+.stcpay-modal .modal-close-btn:active{
 	color: #333;
 	border:none;
 	outline: none;
+	cursor: pointer;
 	background: none;
 }
-.stcpay-otp-modal .modal-actions > button{
+.stcpay-modal .form-actions > button{
 	flex: 1 1 auto;
 }

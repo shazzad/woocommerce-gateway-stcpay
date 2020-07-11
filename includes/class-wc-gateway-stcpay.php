@@ -6,22 +6,23 @@
  * @extends     WC_Payment_Gateway
 **/
 class WC_Gateway_Stcpay extends WC_Payment_Gateway {
-
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		// Setup general properties.
 		$this->setup_properties();
 
-		// Load the form fields
+		// Load the form fields.
 		$this->init_form_fields();
 		$this->init_settings();
 
 		// Get settings.
 		$this->title         = $this->get_option( 'title' );
 		$this->description   = $this->get_option( 'description' );
-		$this->environment   = $this->get_option( 'environment' );
 
-		/* display a message if staging environment is used */
-		if ( 'staging' == $this->environment ) {
+		// Display a message if staging environment is used.
+		if ( 'staging' == $this->get_option( 'environment' ) ) {
 			$this->description .= '<p style="color:red; font-size: 18px; margin: 20px 0 10px;">';
 			$this->description .= __( 'TEST MODE', 'woocommerce-gateway-stcpay' );
 			$this->description .= '</p>';
@@ -34,7 +35,7 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		}
 
 		add_action( 'woocommerce_update_options_payment_gateways_'. $this->id, array( $this, 'process_admin_options' ) );
-
+		add_action( 'wp_footer', array( $this, 'render_otp_form' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 
@@ -52,9 +53,7 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		$this->order_button_text  = __( 'Pay with Stcpay', 'woocommerce-gateway-stcpay' );
 		$this->method_title       = __( 'Stcpay', 'woocommerce-gateway-stcpay');
 		$this->method_description = __( 'Stcpay payment gateway for WooCommerce.', 'woocommerce-gateway-stcpay' );
-		$this->supports           = array(
-			'products'
-		);
+		$this->supports           = array( 'products' );
 		$this->icon               = WC_STCPAY_URL . '/assets/images/stcpay-logo.png';
 	}
 
@@ -88,11 +87,75 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 	 * @return bool|array
 	 */
 	public function process_payment( $order_id ) {
-		if ( 'confirm_payment' === WC()->checkout->get_value( 'stcpay_action' ) ) {
+		if ( get_post_meta( $order_id, 'stcpay_otp_verified', 1 ) ) {
+			return $this->complete_payment( $order_id );
+		} elseif ( WC()->checkout->get_value( 'stcpay_otp_value' ) ) {
 			return $this->confirm_payment( $order_id );
-		} elseif ( 'request_payment' === WC()->checkout->get_value( 'stcpay_action' ) ) {
+		} else {
 			return $this->request_payment( $order_id );
 		}
+	}
+
+	/**
+	 * Complete order payment.
+	 *
+	 * @param  int $order_id Order id
+	 * @return bool|array
+	 */
+	public function complete_payment( $order_id ) {
+		if ( ! get_post_meta( $order_id, 'stcpay_otp_verified', 1 ) ) {
+			wc_add_notice( __( 'Verify OTP first to complete payment.', 'woocommerce-gateway-stcpay' ), 'error' );
+			return false;
+		}
+
+		$order  = wc_get_order( $order_id );
+		$client = new WC_Stcpay_Client();
+
+		$payment = $client->get_payment( $order->get_order_key() );
+		wc_stcpay()->log( print_r( $payment, true ) );
+
+		if ( is_wp_error( $payment ) ) {
+			wc_stcpay()->log(
+				sprintf(
+					/* translators: %s: Error message, may contain html */
+					__( 'Stcpay API Error: %s', 'woocommerce-gateway-stcpay' ),
+					$payment->get_error_message()
+				)
+			);
+
+			$error = $payment->get_error_message();
+
+			if ( ! in_array( $payment->get_error_code(), array( 'api_error', 'customer_error', 'internal_error', 'stcpay_error' ) ) ) {
+				$error = __( 'Could not process your request. Please try later, or use other payment gateway.', 'woocommerce-gateway-stcpay' );
+			}
+
+			return array(
+				'result'        => 'failure',
+				'messages'      => '<div class="woocommerce-error">' . $error . '</div>',
+				'redirect'      => $this->get_return_url( $order ),
+			);
+		}
+
+		$order->add_order_note(
+			sprintf(
+				/* translators: %1$s: Payment status - PAID, PENDING, CANCELLED, EXPIRED. %2$s: Amount */
+				__( 'Stcpay Payment Status: %1$s. Amount Collected: %2$s', 'woocommerce-gateway-stcpay' ),
+				wc_clean( $payment['PaymentStatusDesc'] ),
+				wc_clean( $payment['Amount'] )
+			)
+		);
+
+		update_post_meta( $order->get_id(), 'Stcpay PaymentDate', wc_clean( $payment['PaymentDate'] ) );
+		update_post_meta( $order->get_id(), 'Stcpay PaymentStatus', wc_clean( $payment['PaymentStatus'] ) );
+		update_post_meta( $order->get_id(), 'Stcpay PaymentStatusDesc', wc_clean( $payment['PaymentStatusDesc'] ) );
+
+		$order->payment_complete( $payment['STCPayRefNum'] );
+
+		return array(
+			'result'        => 'success',
+			'messages'      => __( 'Payment Completed Confirmed.', 'woocommerce-gateway-stcpay' ),
+			'redirect'      => $order->get_checkout_order_received_url(),
+		);
 	}
 
 	private function clear_stcpay_otp_session() {
@@ -159,6 +222,10 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		// Remove cart.
 		WC()->cart->empty_cart();
 
+		$order->add_order_note( __( 'Stcpay OTP Verified', 'woocommerce-gateway-stcpay' ) );
+
+		update_post_meta( $order->get_id(), 'stcpay_otp_verified', time() );
+
 		$order->add_order_note(
 			sprintf(
 				/* translators: %1$s: Payment status - PAID, PENDING, CANCELLED, EXPIRED. %2$s: Amount */
@@ -168,9 +235,9 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			)
 		);
 
-		$order->add_meta_data( 'Stcpay PaymentDate', wc_clean( $confirm_payment['PaymentDate'] ) );
-		$order->add_meta_data( 'Stcpay PaymentStatus', wc_clean( $confirm_payment['PaymentStatus'] ) );
-		$order->add_meta_data( 'Stcpay PaymentStatusDesc', wc_clean( $confirm_payment['PaymentStatusDesc'] ) );
+		update_post_meta( $order->get_id(), 'Stcpay PaymentDate', wc_clean( $confirm_payment['PaymentDate'] ) );
+		update_post_meta( $order->get_id(), 'Stcpay PaymentStatus', wc_clean( $confirm_payment['PaymentStatus'] ) );
+		update_post_meta( $order->get_id(), 'Stcpay PaymentStatusDesc', wc_clean( $confirm_payment['PaymentStatusDesc'] ) );
 
 		$order->payment_complete( $confirm_payment['STCPayRefNum'] );
 
@@ -184,6 +251,11 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 	}
 
 	public function request_payment( $order_id ) {
+		if ( empty( $_POST['stcpay_mobile_no'] ) ) {
+			wc_add_notice( __( 'Please enter your stcpay wallet mobile number', 'woocommerce-gateway-stcpay' ), 'error' );
+			return false;
+		}
+
 		$order  = wc_get_order( $order_id );
 		$client = new WC_Stcpay_Client();
 
@@ -195,7 +267,7 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			)
 		);
 
-		$mobile_no = WC()->checkout->get_value( 'stcpay_mobile_no' );
+		$mobile_no = wp_unslash( $_POST['stcpay_mobile_no'] );
 
 		// store mobile number in user meta & session.
 		WC()->session->set( 'stcpay_mobile_no', $mobile_no );
@@ -224,8 +296,9 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		$order->add_order_note(
 			sprintf(
 				/* translators: %s: Payment reference, string. */
-				__( 'Stcpay OTP Requested, Payment Reference: %s', 'woocommerce-gateway-stcpay' ),
-				wc_clean( $request_payment['STCPayPmtReference'] )
+				__( 'Stcpay OTP Requested <br/>Payment Reference: %s <br/>OTP Reference: %s', 'woocommerce-gateway-stcpay' ),
+				wc_clean( $request_payment['STCPayPmtReference'] ),
+				wc_clean( $request_payment['OtpReference'] )
 			)
 		);
 
@@ -234,15 +307,16 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 		WC()->session->set( 'stcpay_payment_reference', $request_payment['STCPayPmtReference'] );
 
 		return array(
-			'result'                   => 'success',
-			'messages'                 => '<div class="woocommerce-info">' . __( 'Enter OTP to confirm order', 'woocommerce-gateway-stcpay' ) . '</div>',
-			'stcpay_action' 		   => 'confirm_payment',
-			'redirect'                 => $this->get_return_url( $order ),
+			'result'        => 'success',
+			'messages'      => '<div class="woocommerce-info">' . __( 'Enter OTP to confirm order', 'woocommerce-gateway-stcpay' ) . '</div>',
+			'stcpay_action' => 'confirm_payment',
+			'otpExpires' 	=> time() + $request_payment['ExpiryDuration'],
+			'redirect'      => $this->get_return_url( $order ),
 		);
 	}
 
 	public function validate_fields() {
-		if ( ! WC()->checkout->get_value( 'stcpay_mobile_no' ) ) {
+		if ( empty( $_POST['stcpay_mobile_no'] ) ) {
 			wc_add_notice( __( 'Please enter your stcpay wallet mobile number', 'woocommerce-gateway-stcpay' ), 'error' );
 		}
 	}
@@ -266,7 +340,9 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			<p class="form-row field-stcpay-mobile-no">
 				<label for="stcpay-mobile-no"><?php _e( 'Stcpay Wallet Mobile Number', 'woocommerce-gateway-stcpay' ); ?>&nbsp;<span class="required">*</span></label>
 				<input id="stcpay-mobile-no" value="<?php echo esc_attr( $mobile_no ); ?>" class="input-text" autocorrect="no" autocapitalize="no" spellcheck="no" type="text" name="stcpay_mobile_no" required />
+				<span class="field-notice"></span>
 			</p>
+			<input type="hidden" id="stcpay-otp-value" name="stcpay_otp_value" value="" />
 			<input type="hidden" id="stcpay-action" name="stcpay_action" value="request_payment" />
 			<div class="clear"></div>
 		</fieldset>
@@ -292,7 +368,7 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			return;
 		}
 
-		// If Stripe is not available, bail.
+		// If Stcpay is not available, bail.
 		if ( ! $this->is_available() ) {
 			return;
 		}
@@ -309,6 +385,21 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			WC_STCPAY_URL . '/assets/css/frontend.css',
 			array(),
 			WC_STCPAY_VERSION
+		);
+
+		wp_localize_script(
+			'stcpay-checkout',
+			'stcpay',
+			array(
+				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+				'orderKey'         => isset( $_GET['key'] ) ? wp_unslash( $_GET['key'] ) : '',
+				'textOtpExpired'   => __( 'OTP Expired, Please request a new OTP', 'woocommerce-gateway-stcpay' ),
+				'textOtpExpiresIn' => sprintf(
+					__( 'OTP expires in %s seconds', 'woocommerce-gateway-stcpay' ),
+					'{expires}'
+				),
+				'textEnterWalletNumber' => __( 'Enter Wallet Mobile No', 'woocommerce-gateway-stcpay' )
+			)
 		);
 
 		wp_enqueue_script( 'stcpay-checkout' );
@@ -334,5 +425,46 @@ class WC_Gateway_Stcpay extends WC_Payment_Gateway {
 			WC_STCPAY_VERSION,
 			true
 		);
+	}
+
+	public function render_otp_form() {
+		if ( ! is_cart() && ! is_checkout() && ! isset( $_GET['pay_for_order'] ) ) {
+			return;
+		}
+
+		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+		if ( ! isset( $available_gateways['stcpay'] ) ) {
+			return;
+		}
+
+		?>
+		<div id="stcpay-otp-modal" class="stcpay-modal">
+			<div class="modal-wrap">
+				<div class="modal-inner">
+					<p class="logo-wrap"><img src="<?php echo  WC_STCPAY_URL . '/assets/images/stcpay-logo.png'; ?>" /></p>
+					<div class="modal-notice"></div>
+
+					<div class="otp-confirmation-form">
+						<div class="form-heading"><?php esc_html_e( 'Please enter the OTP you have received from STC Pay', 'woocommerce-gateway-stcpay' ); ?></div>
+						<input id="stcpay-modal-otp-value" type="text" />
+						<div class="form-notice"></div>
+						<div class="form-actions">
+							<button class="confirm-otp-btn" type="button" data-text="<?php esc_attr_e( 'Verify OTP', 'woocommerce-gateway-stcpay' ); ?>" data-loading="<?php esc_attr_e( 'Verifying', 'woocommerce-gateway-stcpay' ); ?>"><?php esc_html_e( 'Verify OTP', 'woocommerce-gateway-stcpay' ); ?></button>
+							<button class="modal-close-btn" type="button"><?php esc_html_e( 'Cancel', 'woocommerce-gateway-stcpay' ); ?></button>
+						</div>
+					</div>
+
+					<div class="otp-request-form" style="display:none;">
+						<div class="form-heading"><?php _e( 'Request new OTP.', 'woocommerce-gateway-stcpay' ); ?></div>
+						<div class="form-notice"></div>
+						<div class="form-actions">
+							<button class="request-otp-btn" type="button" title="<?php esc_attr_e( 'Request OTP to confirm payments', 'woocommerce-gateway-stcpay' ); ?>" data-text="<?php esc_attr_e( 'Request OTP', 'woocommerce-gateway-stcpay' ); ?>" data-loading="<?php esc_attr_e( 'Requesting', 'woocommerce-gateway-stcpay' ); ?>"><?php esc_html_e( 'Request OTP', 'woocommerce-gateway-stcpay' ); ?></button>
+							<button class="modal-close-btn" type="button" title="<?php esc_attr_e( 'Cancel', 'woocommerce-gateway-stcpay' ); ?>"><?php esc_html_e( 'Cancel', 'woocommerce-gateway-stcpay' ); ?></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 }
