@@ -54,13 +54,15 @@
 .modal-notice > .woocommerce-error,
 .modal-notice > .woocommerce-message,
 .modal-notice > .woocommerce-info{
-	font-size: 12px;
+	border: none;
+	font-size: 13px;
 	line-height:14px;
 	text-align: center;
 }
 .form-notice > .woocommerce-error,
 .form-notice > .woocommerce-message,
 .form-notice > .woocommerce-info{
+	border: none;
 	font-size: 12px;
 	line-height:14px;
 	text-align: center;
@@ -79,6 +81,12 @@
 .stcpay-modal .form-actions{
 	width: 100%;
 	text-align: center;
+}
+#stcpay-modal-otp-value{
+	color: #333;
+	line-height: 1.8;
+	padding: 6px 12px;
+	border: 1px solid #ddd;
 }
 .stcpay-modal .confirm-otp-btn,
 .stcpay-modal .request-otp-btn{

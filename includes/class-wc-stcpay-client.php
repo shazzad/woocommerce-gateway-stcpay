@@ -13,6 +13,8 @@ class WC_Stcpay_Client {
 	 * @var bool
 	 */
 	const MOCK_DATA = false;
+	const MOCK_PENDING = false;
+	const MOCK_CANCELLED = false;
 
 	/**
 	 * Available api environments
@@ -157,7 +159,7 @@ class WC_Stcpay_Client {
 	}
 
 	private function get_internal_error_codes() {
-		return array( 2001, 2003, 2004, 2006, 2011, 2012, 2012, 2013, 2014, 2015, 2016, 2019, 2021, 2026, 2033, 2034, 2035, 2036 );
+		return array( 2001, 2003, 2004, 2011, 2012, 2012, 2013, 2014, 2015, 2016, 2019, 2021, 2026, 2033, 2034, 2035, 2036 );
 	}
 
 	/**
@@ -226,6 +228,17 @@ class WC_Stcpay_Client {
 			'STCPayPmtReference' => $payment_reference,
 		);
 
+		// Simulate pending transaction.
+		if ( self::MOCK_PENDING ) {
+			$response = $this->request( 'DirectPaymentConfirm', $data );
+			if ( isset( $response['PaymentStatus'] ) ) {
+				$response['PaymentStatus'] = 1;
+				$response['PaymentStatusDesc'] = 'Pending';
+			}
+
+			return $response;
+		}
+
 		return $this->request( 'DirectPaymentConfirm', $data );
 	}
 
@@ -256,9 +269,21 @@ class WC_Stcpay_Client {
 		);
 
 		$response = $this->request( 'PaymentInquiry', $data );
-		if ( isset( $response['TransactionList'] ) ) {
-			return $response['TransactionList'][0];
+		if ( ! is_wp_error( $response ) && isset( $response['TransactionList'] ) ) {
+			$response = $response['TransactionList'][0];
 		}
+
+		// Simulate pending transaction.
+		/*
+		if ( self::MOCK_PENDING ) {
+			if ( isset( $response['PaymentStatus'] ) ) {
+				$response['PaymentStatus'] = 1;
+				$response['PaymentStatusDesc'] = 'Pending';
+			}
+
+			return $response;
+		}
+		*/
 
 		return $response;
 	}

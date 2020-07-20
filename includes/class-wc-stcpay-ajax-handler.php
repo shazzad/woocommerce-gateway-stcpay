@@ -1,26 +1,29 @@
 <?php
 /**
- * Stcpay hooks
+ * Stcpay Ajax handler
  *
  * Handle processes that happens outside of payment gateway.
  *
- * @class       WC_Stcpay_Hooks
+ * @class       WC_Stcpay_Ajax_Handler
  */
-class WC_Stcpay_Hooks {
+class WC_Stcpay_Ajax_Handler {
 
-	public static function init() {
-		add_action( 'wp_ajax_stcpay_request_otp', array( __CLASS__, 'request_otp_ajax' ) );
-		add_action( 'wp_ajax_stcpay_confirm_otp', array( __CLASS__, 'confirm_otp_ajax' ) );
+	public function __construct() {
+		add_action( 'wp_ajax_nopriv_stcpay_request_otp', array( $this, 'request_otp_ajax' ) );
+		add_action( 'wp_ajax_stcpay_request_otp', array( $this, 'request_otp_ajax' ) );
 
-		#add_action( 'woocommerce_checkout_after_order_review', array( __CLASS__, 'render_otp_form' ) );
-		#add_action( 'woocommerce_pay_order_after_submit', array( __CLASS__, 'render_otp_form' ) );
-		#add_action( 'woocommerce_before_settings_checkout', array( __CLASS__, 'admin_chekout_page' ) );
+		add_action( 'wp_ajax_nopriv_stcpay_confirm_otp', array( $this, 'confirm_otp_ajax' ) );
+		add_action( 'wp_ajax_stcpay_confirm_otp', array( $this, 'confirm_otp_ajax' ) );
+
+		#add_action( 'woocommerce_checkout_after_order_review', array( $this, 'render_otp_form' ) );
+		#add_action( 'woocommerce_pay_order_after_submit', array( $this, 'render_otp_form' ) );
+		#add_action( 'woocommerce_before_settings_checkout', array( $this, 'admin_chekout_page' ) );
 	}
 
-	public static function admin_chekout_page() {
+	public function admin_chekout_page() {
 		$client = new WC_Stcpay_Client();
 		$payment = $client->get_payment( 'wc_order_lOB5Qt7rGMgOQ' );
-		WC_Stcpay_Utils::p($payment);
+		WC_Stcpay_Utils::p( $payment );
 	}
 
 	private function clear_stcpay_otp_session() {
@@ -29,22 +32,22 @@ class WC_Stcpay_Hooks {
 		WC()->session->__unset( 'stcpay_payment_reference' );
 	}
 
-	public static function confirm_otp_ajax() {
+	public function confirm_otp_ajax() {
 		$data = $_POST;
 		if ( empty( $_POST['order_key'] ) ) {
 			wp_send_json_error( array(
-				'message' => __( 'Invalid order key' )
+				'message' => __( 'Invalid order key', 'woocommerce-gateway-stcpay' )
 			) );
 		} elseif ( empty( $_POST['otp_value'] ) ) {
 			wp_send_json_error( array(
-				'message' => __( 'Invalid OTP' )
+				'message' => __( 'Invalid OTP', 'woocommerce-gateway-stcpay' )
 			) );
 		}
 
 		$order_id = wc_get_order_id_by_order_key( wp_unslash( $_POST['order_key'] ) );
 		if ( ! $order_id ) {
 			wp_send_json_error( array(
-				'message' => __( 'No order found with given key.' )
+				'message' => __( 'No order found with given key.', 'woocommerce-gateway-stcpay' )
 			) );
 		}
 
@@ -54,11 +57,11 @@ class WC_Stcpay_Hooks {
 
 		$error = '';
 		if ( ! WC()->session->get( 'stcpay_otp_expires' ) || WC()->session->get( 'stcpay_otp_expires' ) < time() ) {
-			$error = __( 'Internal Error: OTP expired.' );
+			$error = __( 'Internal Error: OTP expired.', 'woocommerce-gateway-stcpay' );
 		} elseif ( ! WC()->session->get( 'stcpay_otp_reference' ) ) {
-			$error = __( 'Internal Error: Missing otp reference.' );
+			$error = __( 'Internal Error: Missing otp reference.', 'woocommerce-gateway-stcpay' );
 		} elseif ( ! WC()->session->get( 'stcpay_payment_reference' ) ) {
-			$error = __( 'Internal Error: Missing payment reference.' );
+			$error = __( 'Internal Error: Missing payment reference.', 'woocommerce-gateway-stcpay' );
 		}
 
 		if ( ! empty( $error ) ) {
@@ -71,8 +74,8 @@ class WC_Stcpay_Hooks {
 
 		wc_stcpay()->log(
 			sprintf(
-				/* translators: %d: Order id, numeric. */
-				__( 'Stcpay confirming payment for order: %d, using OTP %s', 'woocommerce-gateway-stcpay' ),
+				/* translators: %1$d: Order id. %2$s: OTP. */
+				__( 'Stcpay confirming payment for order: %1$d, using OTP %2$s', 'woocommerce-gateway-stcpay' ),
 				$order->get_id(),
 				$otp_value
 			)
@@ -87,7 +90,13 @@ class WC_Stcpay_Hooks {
 		);
 
 		if ( is_wp_error( $confirm_payment ) ) {
-			wc_stcpay()->log( sprintf( __( 'Stcpay API Error: %s' ), $confirm_payment->get_error_message() ) );
+			wc_stcpay()->log(
+				sprintf(
+					/* translators: %s: Error message. */
+					__( 'Stcpay API Error: %s', 'woocommerce-gateway-stcpay' ),
+					$confirm_payment->get_error_message()
+				)
+			);
 
 			if ( $confirm_payment->get_error_data() ) {
 				wc_stcpay()->log( print_r( $confirm_payment->get_error_data(), true ) );
@@ -113,11 +122,11 @@ class WC_Stcpay_Hooks {
 		update_post_meta( $order->get_id(), 'stcpay_otp_verified', time() );
 
 		wp_send_json_success( array(
-			'message' => 'OTP Confirmed'
+			'message' => __( 'OTP Confirmed. Redirecting.', 'woocommerce-gateway-stcpay' )
 		));
 	}
 
-	public static function request_otp_ajax() {
+	public function request_otp_ajax() {
 		$data = $_POST;
 		if ( empty( $_POST['order_key'] ) ) {
 			wp_send_json_error( array(
@@ -160,7 +169,13 @@ class WC_Stcpay_Hooks {
 		$request_payment = $client->request_payment( $order, $mobile_no );
 
 		if ( is_wp_error( $request_payment ) ) {
-			wc_stcpay()->log( sprintf( __( 'Stcpay API Error: %s' ), $request_payment->get_error_message() ) );
+			wc_stcpay()->log(
+				sprintf(
+					/* translators: %s: Error message. */
+					__( 'Stcpay API Error: %s', 'woocommerce-gateway-stcpay' ),
+					$request_payment->get_error_message()
+				)
+			);
 
 			if ( $request_payment->get_error_data() ) {
 				wc_stcpay()->log( print_r( $request_payment->get_error_data(), true ) );
@@ -180,8 +195,8 @@ class WC_Stcpay_Hooks {
 
 		$order->add_order_note(
 			sprintf(
-				/* translators: %s: Payment reference, string. */
-				__( 'Stcpay OTP Requested <br/>Payment Reference: %s <br/>OTP Reference: %s', 'woocommerce-gateway-stcpay' ),
+				/* translators: %1$s: Payment reference. %2$s: OTP reference */
+				__( 'Stcpay OTP Requested <br/>Payment Reference: %1$s <br/>OTP Reference: %2$s', 'woocommerce-gateway-stcpay' ),
 				wc_clean( $request_payment['STCPayPmtReference'] ),
 				wc_clean( $request_payment['OtpReference'] )
 			)

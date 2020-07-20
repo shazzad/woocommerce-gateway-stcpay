@@ -2,7 +2,7 @@
 /*
  * Plugin Name: WooCommerce Stcpay Gateway
  * Description: Take payments using Stcpay mobile wallet service.
- * Version: 0.0.3
+ * Version: 1.0.0
  * Author: Shazzad Hossain Khan
  * Requires at least: 5.4.2
  * Tested up to: 5.4.2

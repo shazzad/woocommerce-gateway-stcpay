@@ -13,7 +13,7 @@ final class WC_Stcpay {
 	/**
 	 * @var plugin version
 	 */
-	public $version = '0.0.3';
+	public $version = '1.0.0';
 
 	/**
 	 * @var Singleton The reference the *Singleton* instance of this class
@@ -86,7 +86,10 @@ final class WC_Stcpay {
 			self::$settings = get_option( 'woocommerce_stcpay_settings', array() );
 		}
 
-		WC_Stcpay_Hooks::init();
+		new WC_Stcpay_Ajax_Handler();
+
+		// handle payment gateway cron jobs
+		new WC_Stcpay_Cron_Handler();
 	}
 
 	/**
@@ -94,9 +97,15 @@ final class WC_Stcpay {
 	 */
 	private function includes() {
 		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-utils.php';
-		require WC_STCPAY_DIR . '/includes/class-wc-gateway-stcpay.php';
 		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-client.php';
-		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-hooks.php';
+
+		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-response.php';
+		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-cron-handler.php';
+		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-ajax-handler.php';
+		require WC_STCPAY_DIR . '/includes/class-wc-stcpay-api-handler.php';
+
+		require WC_STCPAY_DIR . '/includes/class-wc-gateway-stcpay.php';
+
 	}
 
 	/**

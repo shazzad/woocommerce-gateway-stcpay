@@ -24,7 +24,7 @@
     captureAjaxData: function( event, xhr, settings ) {
       stcpay_checkout.recentAjax.url = settings.url;
       stcpay_checkout.recentAjax.xhr = xhr;
-      stcpay_checkout.recentAjax.data = stcpay_checkout.formatData(settings.data);
+      stcpay_checkout.recentAjax.data = settings.data ? stcpay_checkout.formatData(settings.data) : {};
     },
     getSelectedPaymentMethod: function(){
       return $( '.woocommerce input[name="payment_method"]:checked' ).val();
@@ -126,6 +126,15 @@
         } else if ( 'payment_confirmed' === result.stcpay_action  && result.redirect) {
           // Stop woocommerce scroll to notices animation.
           $('html, body').stop();
+
+          stcpay_checkout.$confirmationForm
+            .hide();
+
+          clearTimeout( stcpay_checkout.otpExpireTimer );
+          stcpay_checkout.$modal
+            .find('.modal-notice')
+              .html(result.messages)
+                .show();
 
           window.location = result.redirect;
        }
@@ -235,6 +244,11 @@
         .attr('disabled', 'disabled')
           .text( stcpay_checkout.$confirmBtn.data('loading') );
 
+      stcpay_checkout.$confirmationForm
+        .find('.form-notice')
+          .empty()
+            .hide();
+
       $('#stcpay-otp-value').val($('#stcpay-modal-otp-value').val());
       $('#stcpay-action').val('confirm_otp');
       $('#place_order').trigger('submit');
@@ -243,6 +257,11 @@
       stcpay_checkout.$confirmBtn
         .attr('disabled', 'disabled')
         .text( stcpay_checkout.$confirmBtn.data('loading') );
+
+      stcpay_checkout.$confirmationForm
+        .find('.form-notice')
+          .empty()
+            .hide();
 
       var data = {
         action: 'stcpay_confirm_otp',
@@ -254,13 +273,13 @@
       .done(function(r){
         if (r.success) {
           stcpay_checkout.$confirmationForm
-            .find('.form-actions, #stcpay-modal-otp-value')
-              .hide();
+            .hide();
 
-          stcpay_checkout.$confirmationForm
-            .find('.form-notice')
-              .html('<div class="woocommerce-message">'+ r.data.message + '</div>')
-              .show();
+          clearTimeout( stcpay_checkout.otpExpireTimer );
+          stcpay_checkout.$modal
+            .find('.modal-notice')
+            .html('<div class="woocommerce-message">'+ r.data.message + '</div>')
+                .show();
 
           $('#order_review')
             .addClass('confirmed')
