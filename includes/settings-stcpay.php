@@ -1,18 +1,17 @@
 <?php
 /**
  * Settings for Stcpay Gateway.
- *
-**/
+ **/
 
 defined( 'ABSPATH' ) || exit;
 
-$environments = array();
+$environments       = array();
 $environment_fileds = array();
 
 foreach ( WC_Stcpay_Client::$environments as $environment_id => $environment ) {
 	$environments[ $environment_id ] = $environment['name'];
 
-	$environment_fileds[ $environment_id . '_ssl_cert_file'] = array(
+	$environment_fileds[ $environment_id . '_ssl_cert_file' ] = array(
 		'title'       => sprintf(
 			/* translators: %s: Gateway Environment - Staging, Production */
 			__( '%s SSL Cert File:', 'woocommerce-gateway-stcpay' ),
@@ -22,7 +21,7 @@ foreach ( WC_Stcpay_Client::$environments as $environment_id => $environment ) {
 		'description' => __( 'SSL Certificate file path.', 'woocommerce-gateway-stcpay' ),
 		'desc_tip'    => true
 	);
-	$environment_fileds[ $environment_id . '_ssl_key_file'] = array(
+	$environment_fileds[ $environment_id . '_ssl_key_file' ]  = array(
 		'title'       => sprintf(
 			/* translators: %s: Gateway Environment - Staging, Production */
 			__( '%s SSL Key File:', 'woocommerce-gateway-stcpay' ),
@@ -32,7 +31,7 @@ foreach ( WC_Stcpay_Client::$environments as $environment_id => $environment ) {
 		'description' => __( 'SSL Private key file path.', 'woocommerce-gateway-stcpay' ),
 		'desc_tip'    => true
 	);
-	$environment_fileds[ $environment_id . '_ssl_password'] = array(
+	$environment_fileds[ $environment_id . '_ssl_password' ]  = array(
 		'title'       => sprintf(
 			/* translators: %s: Gateway Environment - Staging, Production */
 			__( '%s SSL Key Password:', 'woocommerce-gateway-stcpay' ),
@@ -46,7 +45,7 @@ foreach ( WC_Stcpay_Client::$environments as $environment_id => $environment ) {
 
 return array_merge(
 	array(
-		'enabled' => array(
+		'enabled'           => array(
 			'title'       => __( 'Enable:', 'woocommerce-gateway-stcpay' ),
 			'type'        => 'checkbox',
 			'label'       => ' ',
@@ -54,14 +53,14 @@ return array_merge(
 			'default'     => 'no',
 			'desc_tip'    => true
 		),
-		'title' => array(
+		'title'             => array(
 			'title'       => __( 'Title:', 'woocommerce-gateway-stcpay' ),
 			'type'        => 'text',
 			'description' => __( 'Title of Stcpay Payment Gateway that users see on Checkout page.', 'woocommerce-gateway-stcpay' ),
 			'default'     => __( 'Stcpay', 'woocommerce-gateway-stcpay' ),
 			'desc_tip'    => true
 		),
-		'description' => array(
+		'description'       => array(
 			'title'       => __( 'Description:', 'woocommerce-gateway-stcpay' ),
 			'type'        => 'textarea',
 			'description' => __( 'Description of Stcpay Payment Gateway that users sees on Checkout page.', 'woocommerce-gateway-stcpay' ),
@@ -72,41 +71,41 @@ return array_merge(
 			'title' => __( 'Advanced options', 'woocommerce-gateway-stcpay' ),
 			'type'  => 'title'
 		),
-		'merchant_id' => array(
+		'merchant_id'       => array(
 			'title'       => __( 'Mertchant ID:', 'woocommerce-gateway-stcpay' ),
 			'type'        => 'text',
 			'description' => __( 'Stcpay Merchant id.', 'woocommerce-gateway-stcpay' ),
 			'desc_tip'    => true
 		),
-		'branch_id' => array(
+		'branch_id'         => array(
 			'title'       => __( 'Branch ID:', 'woocommerce-gateway-stcpay' ),
 			'type'        => 'text',
 			'description' => __( 'Branch id used for direct payment authorization.', 'woocommerce-gateway-stcpay' ),
 			'default'     => 'Main Branch',
 			'desc_tip'    => true
 		),
-		'teller_id' => array(
- 			'title'       => __( 'Teller ID:', 'woocommerce-gateway-stcpay' ),
- 			'type'        => 'text',
- 			'description' => __( 'Teller id used for direct payment authorization.', 'woocommerce-gateway-stcpay' ),
+		'teller_id'         => array(
+			'title'       => __( 'Teller ID:', 'woocommerce-gateway-stcpay' ),
+			'type'        => 'text',
+			'description' => __( 'Teller id used for direct payment authorization.', 'woocommerce-gateway-stcpay' ),
 			'default'     => 'WooCommerce',
- 			'desc_tip'    => true
- 		),
-		'device_id' => array(
- 			'title'       => __( 'Device ID:', 'woocommerce-gateway-stcpay' ),
- 			'type'        => 'text',
- 			'description' => __( 'Device id used for direct payment authorization.', 'woocommerce-gateway-stcpay' ),
+			'desc_tip'    => true
+		),
+		'device_id'         => array(
+			'title'       => __( 'Device ID:', 'woocommerce-gateway-stcpay' ),
+			'type'        => 'text',
+			'description' => __( 'Device id used for direct payment authorization.', 'woocommerce-gateway-stcpay' ),
 			'default'     => get_bloginfo( 'name' ),
- 			'desc_tip'    => true
- 		),
-		'merchant_note' => array(
- 			'title'       => __( 'Merchant Note:', 'woocommerce-gateway-stcpay' ),
- 			'type'        => 'text',
- 			'description' => __( 'Merchant Note used on direct payment authorization.', 'woocommerce-gateway-stcpay' ),
+			'desc_tip'    => true
+		),
+		'merchant_note'     => array(
+			'title'       => __( 'Merchant Note:', 'woocommerce-gateway-stcpay' ),
+			'type'        => 'text',
+			'description' => __( 'Merchant Note used on direct payment authorization.', 'woocommerce-gateway-stcpay' ),
 			'default'     => 'Make payments for ' . get_bloginfo( 'name' ),
- 			'desc_tip'    => true
- 		),
-		'debug' => array(
+			'desc_tip'    => true
+		),
+		'debug'             => array(
 			'title'       => __( 'Debug log', 'woocommerce-gateway-stcpay' ),
 			'type'        => 'checkbox',
 			'label'       => 'Enable logging',
@@ -118,11 +117,11 @@ return array_merge(
 			),
 			'default'     => 'no',
 		),
-		'api_details' => array(
+		'api_details'       => array(
 			'title' => __( 'API Settings', 'woocommerce-gateway-stcpay' ),
 			'type'  => 'title',
 		),
-		'environment' => array(
+		'environment'       => array(
 			'title'   => __( 'Environment', 'woocommerce-gateway-stcpay' ),
 			'type'    => 'select',
 			'default' => 'staging',
@@ -130,4 +129,4 @@ return array_merge(
 		)
 	),
 	$environment_fileds
- );
+);
