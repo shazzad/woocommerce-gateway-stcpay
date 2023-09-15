@@ -6,22 +6,22 @@
  **/
 final class WC_Stcpay {
 	/**
-	 * @var plugin name
+	 * @var string name
 	 */
 	public $name = 'WooCommerce Gateway Stcpay';
 
 	/**
-	 * @var plugin version
+	 * @var string version
 	 */
-	public $version = '1.0.0';
+	public $version = '1.0.1';
 
 	/**
-	 * @var Singleton The reference the *Singleton* instance of this class
+	 * @var WC_Stcpay The reference the *Singleton* instance of this class
 	 */
 	protected static $_instance = null;
 
 	/**
-	 * @var plugin settings
+	 * @var mixed settings
 	 */
 	protected static $settings = null;
 
@@ -30,7 +30,7 @@ final class WC_Stcpay {
 	/**
 	 * Returns the *Singleton* instance of this class.
 	 *
-	 * @return Singleton The *Singleton* instance.
+	 * @return WC_Stcpay The *Singleton* instance.
 	 */
 	public static function get_instance() {
 		if ( is_null( self::$_instance ) ) {
@@ -46,7 +46,8 @@ final class WC_Stcpay {
 	 *
 	 * @return void
 	 */
-	private function __clone() {}
+	private function __clone() {
+	}
 
 	/**
 	 * Private unserialize method to prevent unserializing of the *Singleton*
@@ -54,7 +55,8 @@ final class WC_Stcpay {
 	 *
 	 * @return void
 	 */
-	private function __wakeup() {}
+	private function __wakeup() {
+	}
 
 	/**
 	 * Protected constructor to prevent creating a new instance of the

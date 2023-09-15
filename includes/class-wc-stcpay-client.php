@@ -68,6 +68,11 @@ class WC_Stcpay_Client {
 	protected $ssl_key_password = '';
 
 	/**
+	 * Merchant id
+	 */
+	protected $merchant_id = '';
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -87,7 +92,7 @@ class WC_Stcpay_Client {
 	 * @return boolean True if available.
 	 */
 	public function is_available() {
-		return $this->ssl_cert_file && $this->ssl_key_file && $this->merchant_id;
+		return ! empty( $this->merchant_id );
 	}
 
 	/**
@@ -133,7 +138,7 @@ class WC_Stcpay_Client {
 			2020 => __( 'Required OtpValue.', 'woocommerce-gateway-stcpay' ),
 			2021 => __( 'Required STCPayPmtReference.', 'woocommerce-gateway-stcpay' ),
 			2022 => __( 'Invalid Token', 'woocommerce-gateway-stcpay' ),
-			2023 => __( 'Customer doesn’t have Sufficient Fund.', 'woocommerce-gateway-stcpay' ),
+			2023 => __( 'Customer doesn\'t have Sufficient Fund.', 'woocommerce-gateway-stcpay' ),
 			2024 => __( 'Shared Account Limit Exceeded.', 'woocommerce-gateway-stcpay' ),
 			2025 => __( 'Shared Account Transaction not allowed.', 'woocommerce-gateway-stcpay' ),
 			2026 => __( 'Payment Expired.', 'woocommerce-gateway-stcpay' ),
@@ -167,7 +172,7 @@ class WC_Stcpay_Client {
 	 *
 	 * @param  WC_Order $order Order object.
 	 * @param  string $mobile_no Customer stcpay wallet mobile number.
-	 * @return string
+	 * @return array|WP_Error
 	 */
 	public function request_payment( $order, $mobile_no ) {
 		if ( self::MOCK_DATA ) {
@@ -200,7 +205,7 @@ class WC_Stcpay_Client {
 	 * @param  string $otp_value OTP Value supplied by Customer.
 	 * @param  string $otp_reference OTP Reference supplied by Stcpay.
 	 * @param  string $payment_reference Payment Reference supplied by Stcpay.
-	 * @return string
+	 * @return array|WP_Error
 	 */
 	public function confirm_payment( $otp_value, $otp_reference, $payment_reference ) {
 		if ( self::MOCK_DATA && '4444' === $otp_value ) {
@@ -210,15 +215,15 @@ class WC_Stcpay_Client {
 		if ( self::MOCK_DATA ) {
 			return array(
 				"MerchantID"        => "61240300247",
-		        "BranchID"          => "1",
-		        "TellerID"          => "22",
-		        "DeviceID"          => "500",
-		        "RefNum"            => "wc_order_bcdahello",
-		        "STCPayRefNum"      => $payment_reference,
-		        "Amount"            => 20.800,
-		        "PaymentDate"       => "2020-07-06T17:34:15.24",
-		        "PaymentStatus"     => 2,
-		        "PaymentStatusDesc" => "Paid"
+				"BranchID"          => "1",
+				"TellerID"          => "22",
+				"DeviceID"          => "500",
+				"RefNum"            => "wc_order_bcdahello",
+				"STCPayRefNum"      => $payment_reference,
+				"Amount"            => 20.800,
+				"PaymentDate"       => "2020-07-06T17:34:15.24",
+				"PaymentStatus"     => 2,
+				"PaymentStatusDesc" => "Paid"
 			);
 		}
 
@@ -232,7 +237,7 @@ class WC_Stcpay_Client {
 		if ( self::MOCK_PENDING ) {
 			$response = $this->request( 'DirectPaymentConfirm', $data );
 			if ( isset( $response['PaymentStatus'] ) ) {
-				$response['PaymentStatus'] = 1;
+				$response['PaymentStatus']     = 1;
 				$response['PaymentStatusDesc'] = 'Pending';
 			}
 
@@ -252,15 +257,15 @@ class WC_Stcpay_Client {
 		if ( self::MOCK_DATA ) {
 			return array(
 				"MerchantID"        => "61240300247",
-		        "BranchID"          => "1",
-		        "TellerID"          => "22",
-		        "DeviceID"          => "500",
-		        "RefNum"            => "wc_order_bcdahello",
-		        "STCPayRefNum"      => $payment_reference,
-		        "Amount"            => 20.800,
-		        "PaymentDate"       => "2020-07-06T17:34:15.24",
-		        "PaymentStatus"     => 2,
-		        "PaymentStatusDesc" => "Paid"
+				"BranchID"          => "1",
+				"TellerID"          => "22",
+				"DeviceID"          => "500",
+				"RefNum"            => "wc_order_bcdahello",
+				"STCPayRefNum"      => $payment_reference,
+				"Amount"            => 20.800,
+				"PaymentDate"       => "2020-07-06T17:34:15.24",
+				"PaymentStatus"     => 2,
+				"PaymentStatusDesc" => "Paid"
 			);
 		}
 
@@ -274,16 +279,14 @@ class WC_Stcpay_Client {
 		}
 
 		// Simulate pending transaction.
-		/*
 		if ( self::MOCK_PENDING ) {
 			if ( isset( $response['PaymentStatus'] ) ) {
-				$response['PaymentStatus'] = 1;
+				$response['PaymentStatus']     = 1;
 				$response['PaymentStatusDesc'] = 'Pending';
 			}
 
 			return $response;
 		}
-		*/
 
 		return $response;
 	}
@@ -292,7 +295,7 @@ class WC_Stcpay_Client {
 	 * Make request to stcpay
 	 *
 	 * @param  WC_Order $order Order object.
-	 * @return string
+	 * @return array|WP_Error
 	 */
 	private function request( $type, $data ) {
 		wc_stcpay()->log( 'Stcpay API Request: ' . $type );
@@ -305,7 +308,7 @@ class WC_Stcpay_Client {
 				'Content-Type' => 'application/json',
 				'X-ClientCode' => $this->merchant_id
 			),
-			'body' => json_encode( array(
+			'body'    => json_encode( array(
 				"{$type}V4RequestMessage" => $data
 			) )
 		);
@@ -333,10 +336,9 @@ class WC_Stcpay_Client {
 
 		// Code other than 200 is unacceptable.
 		if ( 200 !== $code ) {
-			/*
-			if ( isset( $data['Code'] ) && in_array( $data['Code'], $this->get_stcpay_error_codes() ) ) {
-				return new WP_Error( 'stcpay_error', __( 'Stcpay Error. Please try later or Use other payment method' ) );
-			} else*/
+			// if ( isset( $data['Code'] ) && in_array( $data['Code'], $this->get_stcpay_error_codes() ) ) {
+			// 	return new WP_Error( 'stcpay_error', __( 'Stcpay Error. Please try later or Use other payment method' ) );
+			// } else
 			if ( isset( $data['Code'] ) && in_array( $data['Code'], $this->get_internal_error_codes() ) ) {
 				return new WP_Error( 'internal_error', __( 'Internal Error. Please try later or Use other payment method', 'woocommerce-gateway-stcpay' ), $data );
 			} elseif ( isset( $data['Code'] ) && in_array( $data['Code'], $this->get_customer_error_codes() ) ) {
@@ -348,16 +350,24 @@ class WC_Stcpay_Client {
 			}
 		}
 
-		if ( ! isset( $data["{$type}V4ResponseMessage"] ) ) {
+		if ( ! isset( $data[ "{$type}V4ResponseMessage" ] ) ) {
 			return new WP_Error( 'unknown_api_response', __( 'Unknown Response.', 'woocommerce-gateway-stcpay' ) );
 		}
 
-		return $data["{$type}V4ResponseMessage"];
+		return $data[ "{$type}V4ResponseMessage" ];
 	}
 
 	public function curl_ssl_parameters( $handle ) {
-		curl_setopt( $handle, CURLOPT_SSLKEY, $this->ssl_key_file );
-		curl_setopt( $handle, CURLOPT_SSLCERT, $this->ssl_cert_file );
-		curl_setopt( $handle, CURLOPT_SSLCERTPASSWD, $this->ssl_key_password );
+		if ( ! empty( $this->ssl_key_file ) && file_exists( $this->ssl_key_file ) ) {
+			curl_setopt( $handle, CURLOPT_SSLKEY, $this->ssl_key_file );
+		}
+
+		if ( ! empty( $this->ssl_cert_file ) && file_exists( $this->ssl_cert_file ) ) {
+			curl_setopt( $handle, CURLOPT_SSLCERT, $this->ssl_cert_file );
+		}
+
+		if ( ! empty( $this->ssl_key_password ) ) {
+			curl_setopt( $handle, CURLOPT_SSLCERTPASSWD, $this->ssl_key_password );
+		}
 	}
 }

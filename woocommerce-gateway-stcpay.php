@@ -2,7 +2,7 @@
 /*
  * Plugin Name: WooCommerce Stcpay Gateway
  * Description: Take payments using Stcpay mobile wallet service.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Shazzad Hossain Khan
  * Requires at least: 5.4.2
  * Tested up to: 5.4.2
@@ -10,11 +10,11 @@
  * WC tested up to: 4.2.0
  * Text Domain: woocommerce-gateway-stcpay
  * Domain Path: /languages/
-*/
+ */
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 // Define base file
@@ -25,7 +25,7 @@ if ( ! defined( 'WC_STCPAY_PLUGIN_FILE' ) ) {
 /**
  * WooCommerce missing fallback notice.
  *
- * @return string
+ * @return void
  */
 function wc_stcpay_missing_wc_notice() {
 	/* translators: 1. URL link. */
@@ -35,7 +35,7 @@ function wc_stcpay_missing_wc_notice() {
 /**
  * WooCommerce version fallback notice.
  *
- * @return string
+ * @return void
  */
 function wc_stcpay_version_wc_notice() {
 	echo '<div class="error"><p><strong>' . esc_html__( 'Stcpay requires mimumum WooCommerce 3.0. Please upgrade.', 'woocommerce-gateway-stcpay' ) . '</strong></p></div>';
@@ -51,7 +51,7 @@ function wc_stcpay_init() {
 		return;
 	}
 
-	if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
+	if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '3.0', '<' ) ) {
 		add_action( 'admin_notices', 'wc_stcpay_version_wc_notice' );
 		return;
 	}
